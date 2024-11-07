@@ -67,7 +67,7 @@ function lib_to_package_fixup() {
 setup_vendor "${DEVICE_COMMON}" "${VENDOR_COMMON:-$VENDOR}" "${ANDROID_ROOT}" true
 
 # Warning headers and guards
-write_headers "guacamole guacamoleb guacamoleg hotdog hotdogb"
+write_headers "guacamole guacamoleb guacamoleg hotdog hotdogb hotdogg"
 
 # The standard common blobs
 write_makefiles "${MY_DIR}/proprietary-files.txt" true

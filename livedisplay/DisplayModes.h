@@ -1,7 +1,17 @@
 /*
  * Copyright (C) 2019 The LineageOS Project
  *
- * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #ifndef VENDOR_LINEAGE_LIVEDISPLAY_V2_1_DISPLAYMODES_H
@@ -19,9 +29,9 @@ namespace livedisplay {
 namespace V2_1 {
 namespace implementation {
 
-using ::android::sp;
 using ::android::hardware::Return;
 using ::android::hardware::Void;
+using ::android::sp;
 
 class DisplayModes : public IDisplayModes {
   public:
@@ -41,12 +51,10 @@ class DisplayModes : public IDisplayModes {
   private:
     struct ModeInfo {
         std::string name;
-        int32_t displayModeId;
-        uint32_t seedMode;
+        std::vector<std::pair<std::string, std::string>> commands;
     };
     static const std::map<int32_t, ModeInfo> kModeMap;
     std::shared_ptr<V2_0::sdm::SDMController> mController;
-    int32_t mOplusDisplayFd;
     int32_t mCurrentModeId;
     int32_t mDefaultModeId;
     DisplayModeSetCallback mOnDisplayModeSet;

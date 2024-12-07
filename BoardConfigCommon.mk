@@ -4,6 +4,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+BUILD_BROKEN_DUP_RULES := true
+BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+# BUILD_BROKEN_INCORRECT_PARTITION_IMAGES := true
+
 COMMON_PATH := device/oneplus/sm8150-common
 
 # A/B
@@ -56,7 +60,7 @@ NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 TARGET_FORCE_HWC_FOR_VIRTUAL_DISPLAYS := true
 TARGET_USES_DISPLAY_RENDER_INTENTS := true
 TARGET_USES_DRM_PP := true
-TARGET_USES_FOD_ZPOS := true
+# TARGET_USES_FOD_ZPOS := true
 TARGET_USES_GRALLOC1 := true
 TARGET_USES_HWC2 := true
 TARGET_USES_ION := true
@@ -65,14 +69,11 @@ TARGET_USES_ION := true
 TARGET_FS_CONFIG_GEN := $(COMMON_PATH)/config.fs
 
 # Fingerprint
-TARGET_SURFACEFLINGER_UDFPS_LIB := //hardware/oplus:libudfps_extension.oplus
+TARGET_SURFACEFLINGER_UDFPS_LIB := //hardware/oneplus:libudfps_extension.oneplus
 
 # HIDL
-DEVICE_FRAMEWORK_COMPATIBILITY_MATRIX_FILE := \
-    hardware/oplus/vintf/device_framework_matrix.xml \
-    hardware/qcom-caf/common/vendor_framework_compatibility_matrix.xml \
-    vendor/lineage/config/device_framework_matrix.xml
-DEVICE_MATRIX_FILE := hardware/qcom-caf/common/compatibility_matrix.xml
+# DEVICE_MATRIX_FILE := hardware/qcom-caf/common/compatibility_matrix.xml
+DEVICE_MATRIX_FILE := $(COMMON_PATH)/compatibility_matrix.xml
 DEVICE_MANIFEST_FILE := $(COMMON_PATH)/manifest.xml
 
 # Kernel
@@ -96,39 +97,10 @@ BOARD_RAMDISK_USE_LZ4 := true
 TARGET_KERNEL_CONFIG := lineage_sm8150_defconfig
 TARGET_KERNEL_SOURCE := kernel/oneplus/sm8150
 
-# Kernel modules - Audio
-TARGET_MODULE_ALIASES += \
-    adsp_loader_dlkm.ko:audio_adsp_loader.ko \
-    apr_dlkm.ko:audio_apr.ko \
-    audio_extend_dlkm.ko:audio_extend.ko \
-    hdmi_dlkm.ko:audio_hdmi.ko \
-    machine_dlkm.ko:audio_machine_msmnile.ko \
-    mbhc_dlkm.ko:audio_mbhc.ko \
-    native_dlkm.ko:audio_native.ko \
-    pinctrl_wcd_dlkm.ko:audio_pinctrl_wcd.ko \
-    platform_dlkm.ko:audio_platform.ko \
-    q6_dlkm.ko:audio_q6.ko \
-    q6_notifier_dlkm.ko:audio_q6_notifier.ko \
-    q6_pdr_dlkm.ko:audio_q6_pdr.ko \
-    stub_dlkm.ko:audio_stub.ko \
-    swr_ctrl_dlkm.ko:audio_swr_ctrl.ko \
-    swr_dlkm.ko:audio_swr.ko \
-    tfa9894_dlkm.ko:audio_tfa9894.ko \
-    usf_dlkm.ko:audio_usf.ko \
-    wcd_core_dlkm.ko:audio_wcd_core.ko \
-    wcd_spi_dlkm.ko:audio_wcd_spi.ko \
-    wcd934x_dlkm.ko:audio_wcd934x.ko \
-    wcd9360_dlkm.ko:audio_wcd9360.ko \
-    wcd9xxx_dlkm.ko:audio_wcd9xxx.ko \
-    wglink_dlkm.ko:audio_wglink.ko \
-    wsa881x_dlkm.ko:audio_wsa881x.ko
-
-# Kernel modules - WLAN
-TARGET_MODULE_ALIASES += \
-    wlan.ko:qca_cld3_wlan.ko
-
 # Lineage Health
-TARGET_HEALTH_CHARGING_CONTROL_CHARGING_PATH := /sys/class/power_supply/battery/mmi_charging_enable
+TARGET_HEALTH_CHARGING_CONTROL_CHARGING_PATH := /sys/class/power_supply/battery/op_disable_charge
+TARGET_HEALTH_CHARGING_CONTROL_CHARGING_ENABLED := 0
+TARGET_HEALTH_CHARGING_CONTROL_CHARGING_DISABLED := 1
 
 # Platform
 BOARD_USES_QCOM_HARDWARE := true
@@ -141,13 +113,14 @@ BOARD_USES_METADATA_PARTITION := true
 BOARD_FLASH_BLOCK_SIZE := 262144 # (BOARD_KERNEL_PAGESIZE * 64)
 BOARD_SYSTEMIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
+BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := f2fs
 TARGET_COPY_OUT_VENDOR := vendor
 
 # Recovery
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_INCLUDE_RECOVERY_DTBO := true
 TARGET_RECOVERY_PIXEL_FORMAT := RGBX_8888
-TARGET_USERIMAGES_USE_EXT4 := true
+# TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 
 # RIL
@@ -157,12 +130,14 @@ ENABLE_VENDOR_RIL_SERVICE := true
 BOARD_ROOT_EXTRA_SYMLINKS += /vendor/odm/vendor:/odm/vendor
 
 # Security
-VENDOR_SECURITY_PATCH := 2022-12-05
+VENDOR_SECURITY_PATCH := 2022-02-01
 
 # SEPolicy
 include device/qcom/sepolicy_vndr/SEPolicy.mk
-include hardware/oplus/sepolicy/qti/SEPolicy.mk
-include $(COMMON_PATH)/sepolicy/SEPolicy.mk
+
+BOARD_VENDOR_SEPOLICY_DIRS += $(VENDOR_PATH)/sepolicy/vendor
+PRODUCT_PRIVATE_SEPOLICY_DIR += $(VENDOR_PATH)/sepolicy/private
+PRODUCT_PUBLIC_SEPOLICY_DIR += $(VENDOR_PATH)/sepolicy/public
 
 # Verified Boot
 BOARD_AVB_ENABLE := true

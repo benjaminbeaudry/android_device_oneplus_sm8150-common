@@ -84,11 +84,8 @@ int64_t msFromNs(int64_t nanos) {
 }
 
 HalProxy::HalProxy() {
-    static const std::string kMultiHalConfigFiles[] = {"/vendor/etc/sensors/hals.conf",
-                                                       "/odm/etc/sensors/hals.conf"};
-    for (const std::string& configFile : kMultiHalConfigFiles) {
-        initializeSubHalListFromConfigFile(configFile.c_str());
-    }
+    const char* kMultiHalConfigFile = "/vendor/etc/sensors/hals.conf";
+    initializeSubHalListFromConfigFile(kMultiHalConfigFile);
     init();
 }
 
@@ -129,9 +126,7 @@ Return<void> HalProxy::getSensorsList_2_1(ISensorsV2_1::getSensorsList_2_1_cb _h
 Return<void> HalProxy::getSensorsList(ISensorsV2_0::getSensorsList_cb _hidl_cb) {
     std::vector<V1_0::SensorInfo> sensors;
     for (const auto& iter : mSensors) {
-      if (iter.second.type != SensorType::HINGE_ANGLE) {
         sensors.push_back(convertToOldSensorInfo(iter.second));
-      }
     }
     _hidl_cb(sensors);
     return Void();
@@ -266,8 +261,8 @@ Return<Result> HalProxy::initializeCommon(
         Result currRes = mSubHalList[i]->initialize(this, this, i);
         if (currRes != Result::OK) {
             result = currRes;
-            ALOGE("Subhal '%s' failed to initialize with reason %" PRId32 ".",
-                  mSubHalList[i]->getName().c_str(), static_cast<int32_t>(currRes));
+            ALOGE("Subhal '%s' failed to initialize.", mSubHalList[i]->getName().c_str());
+            break;
         }
     }
 
@@ -353,13 +348,13 @@ Return<void> HalProxy::configDirectReport(int32_t sensorHandle, int32_t channelH
     return Return<void>();
 }
 
-Return<void> HalProxy::debug(const hidl_handle& fd, const hidl_vec<hidl_string>& args) {
+Return<void> HalProxy::debug(const hidl_handle& fd, const hidl_vec<hidl_string>& /*args*/) {
     if (fd.getNativeHandle() == nullptr || fd->numFds < 1) {
         ALOGE("%s: missing fd for writing", __FUNCTION__);
         return Void();
     }
 
-    int writeFd = fd->data[0];
+    android::base::borrowed_fd writeFd = dup(fd->data[0]);
 
     std::ostringstream stream;
     stream << "===HalProxy===" << std::endl;
@@ -387,7 +382,7 @@ Return<void> HalProxy::debug(const hidl_handle& fd, const hidl_vec<hidl_string>&
         stream << "  Name: " << subHal->getName() << std::endl;
         stream << "  Debug dump: " << std::endl;
         android::base::WriteStringToFd(stream.str(), writeFd);
-        subHal->debug(fd, args);
+        subHal->debug(fd, {});
         stream.str("");
         stream << std::endl;
     }
@@ -498,7 +493,7 @@ void HalProxy::initializeSensorList() {
                     ALOGV("Loaded sensor: %s", sensor.name.c_str());
                     sensor.sensorHandle = setSubHalIndex(sensor.sensorHandle, subHalIndex);
                     setDirectChannelFlags(&sensor, mSubHalList[subHalIndex]);
-                    if (static_cast<int>(sensor.type) == SENSOR_TYPE_QTI_WISE_LIGHT) {
+                    if (static_cast<int>(sensor.type) == SENSOR_TYPE_QTI_HARDWARE_LIGHT) {
                         sensor.type = SensorType::LIGHT;
                         ALOGV("Replaced QTI Light sensor with standard light sensor");
                         AlsCorrection::init();
@@ -674,8 +669,8 @@ void HalProxy::postEventsToMessageQueue(const std::vector<Event>& eventsList, si
     }
     std::vector<Event> events(eventsList);
     for (auto& event : events) {
-        if (static_cast<int>(event.sensorType) == SENSOR_TYPE_QTI_WISE_LIGHT) {
-            AlsCorrection::process(event);
+        if (static_cast<int>(event.sensorType) == SENSOR_TYPE_QTI_HARDWARE_LIGHT) {
+            AlsCorrection::correct(event.u.scalar);
         }
     }
     if (mPendingWriteEventsQueue.empty()) {
